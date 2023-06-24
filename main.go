@@ -65,7 +65,7 @@ func main() {
 
 	var err error
 
-	for *INPUT != ".exit" {
+	for {
 		*INPUT, err = readUserInput()
 		if err != nil {
 			fmt.Println(err.Error())
