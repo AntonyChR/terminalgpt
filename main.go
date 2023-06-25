@@ -2,19 +2,12 @@ package main
 
 import (
 	"bufio"
-	"flag"
 	"fmt"
 	"os"
 
-	cli "github.com/AntonyChR/terminalGPT/cli"
 	"github.com/AntonyChR/terminalGPT/color"
 	"github.com/AntonyChR/terminalGPT/config"
 	openaiservice "github.com/AntonyChR/terminalGPT/openai_service"
-)
-
-var (
-	INPUT       = flag.String("m", "", cli.M)
-	CREDENTIALS = flag.String("c", "", cli.C)
 )
 
 func readUserInput() (string, error) {
@@ -29,20 +22,15 @@ func validateInput(input string) error {
 }
 
 func main() {
-	flag.Parse()
+
 	var credentials config.Credentials
-
-	if *CREDENTIALS != "" {
-		credentials.Apikey = *CREDENTIALS
-		credentials.Save()
-	}
-
-	if !credentials.Exist() {
-		if err := credentials.Get(); err != nil {
+	if err := credentials.Get(); err != nil {
+		err = credentials.PromptUserForCredentials()
+		if err != nil {
 			fmt.Println(err.Error())
-			flag.Usage()
 			os.Exit(1)
 		}
+		credentials.Save()
 	}
 
 	config := openaiservice.Configuration{
@@ -52,8 +40,14 @@ func main() {
 	}
 	chat := openaiservice.NewChat(config)
 
-	if *INPUT != "" {
-		chat.AddMessageAsUser(*INPUT)
+	args := os.Args
+	var input string
+	if len(args) == 2 {
+		input = args[1]
+	}
+
+	if input != "" {
+		chat.AddMessageAsUser(input)
 		completion, err := chat.GetCompletion()
 		if err != nil {
 			fmt.Println(err.Error())
@@ -66,12 +60,16 @@ func main() {
 	var err error
 
 	for {
-		*INPUT, err = readUserInput()
+		input, err = readUserInput()
 		if err != nil {
 			fmt.Println(err.Error())
 			continue
 		}
-		chat.AddMessageAsUser(*INPUT)
+		if input == "reset\n" {
+			chat.Reset()
+			continue
+		}
+		chat.AddMessageAsUser(input)
 		completion, err := chat.GetCompletion()
 		if err != nil {
 			fmt.Println(err.Error())

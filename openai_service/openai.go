@@ -4,8 +4,10 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"net/http"
 
+	"github.com/AntonyChR/terminalGPT/color"
 	customErrors "github.com/AntonyChR/terminalGPT/customErrors"
 )
 
@@ -89,4 +91,9 @@ func (o *Openai) GetCompletion() (Message, error) {
 
 	return completionResp.Choices[0].Message, nil
 
+}
+
+func (o *Openai) Reset() {
+	fmt.Println(color.Red("Reset context"))
+	o.chat.Messages = []Message{o.chat.Messages[0]}
 }
