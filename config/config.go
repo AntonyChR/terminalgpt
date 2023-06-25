@@ -1,6 +1,7 @@
 package config
 
 import (
+	"bufio"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -43,6 +44,17 @@ func (c *Credentials) Get() error {
 	err := json.Unmarshal(file, &c)
 
 	return err
+}
+
+func (c *Credentials) PromptUserForCredentials() error {
+	reader := bufio.NewReader(os.Stdin)
+	fmt.Print("Api key: ")
+	input, _ := reader.ReadString('\n')
+	if input == "" {
+		return errors.New("Invalid api key")
+	}
+	c.Apikey = input
+	return nil
 }
 
 func (c *Credentials) Exist() bool {
