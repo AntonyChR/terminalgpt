@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+	"errors"
 	"fmt"
 	"os"
 
@@ -18,6 +19,9 @@ func readUserInput() (string, error) {
 }
 
 func validateInput(input string) error {
+	if input == "" || input == "\n" {
+		return errors.New("invalid input")
+	}
 	return nil
 }
 
@@ -40,23 +44,7 @@ func main() {
 	}
 	chat := openaiservice.NewChat(config)
 
-	args := os.Args
 	var input string
-	if len(args) == 2 {
-		input = args[1]
-	}
-
-	if input != "" {
-		chat.AddMessageAsUser(input)
-		completion, err := chat.GetCompletion()
-		if err != nil {
-			fmt.Println(err.Error())
-			os.Exit(1)
-		}
-		fmt.Println(completion.Content)
-		os.Exit(0)
-	}
-
 	var err error
 
 	for {
