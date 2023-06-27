@@ -6,8 +6,8 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/AntonyChR/terminalGPT/color"
-	"github.com/AntonyChR/terminalGPT/config"
+	color "github.com/AntonyChR/terminalGPT/color"
+	config "github.com/AntonyChR/terminalGPT/config"
 	openaiservice "github.com/AntonyChR/terminalGPT/openai_service"
 )
 
