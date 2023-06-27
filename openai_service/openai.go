@@ -5,7 +5,10 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"net/http"
+	"regexp"
+	"strings"
 
 	"github.com/AntonyChR/terminalGPT/color"
 	customErrors "github.com/AntonyChR/terminalGPT/customErrors"
@@ -22,6 +25,7 @@ type Configuration struct {
 	Model       string
 	ApiUrl      string
 	Temperature float32 //default 0.0
+	StreamData  bool    //defaul false
 }
 
 func NewChat(c Configuration) *Openai {
@@ -38,20 +42,24 @@ func NewChat(c Configuration) *Openai {
 				initialMessage,
 			},
 			Temperature: c.Temperature,
+			Stream:      c.StreamData,
 		},
+		incommingMessage: make(chan string),
 	}
 }
 
 type Openai struct {
-	apikey string
-	url    string
-	chat   Chat
+	apikey           string
+	url              string
+	chat             Chat
+	incommingMessage chan string
 }
 
 type Chat struct {
 	Messages    []Message `json:"messages"`
 	Model       string    `json:"model"`
 	Temperature float32   `json:"temperature,omitempty"`
+	Stream      bool      `json:"stream,omitempty"`
 }
 
 func (o *Openai) AddMessage(m Message) {
@@ -81,19 +89,76 @@ func (o *Openai) GetCompletion() (Message, error) {
 		return Message{}, &customErrors.RequestError{StatusCode: resp.StatusCode, Err: errors.New("unespected request errror")}
 	}
 
-	completionResp := CompletionResponse{}
+	defer resp.Body.Close()
 
-	err = json.NewDecoder(resp.Body).Decode(&completionResp)
+	if !o.chat.Stream {
 
-	if err != nil {
-		return Message{}, err
+		completionResp := CompletionResponse{}
+
+		err = json.NewDecoder(resp.Body).Decode(&completionResp)
+
+		if err != nil {
+			return Message{}, err
+		}
+
+		o.incommingMessage <- completionResp.Choices[0].Message.Content
+		o.incommingMessage <- "\n"
+
+		return completionResp.Choices[0].Message, nil
 	}
 
-	return completionResp.Choices[0].Message, nil
+	chunkBuffer := make([]byte, 4096)
+	re := regexp.MustCompile(`(?s)"finish_reason":(null|"stop").*`)
+	msg := Message{Role: ChatRoles.Assistant}
+	content := ""
+	for {
+		chunkSize, err := resp.Body.Read(chunkBuffer)
+		if err != nil {
+			if errors.Is(err, io.EOF) {
+				o.incommingMessage <- "\n"
+				break
+			}
+			fmt.Println("ERROR: ", err.Error())
+		}
+
+		chunkString := string(chunkBuffer[:chunkSize])
+
+		sep := `data: {"id":"chatcmpl`
+
+		splitedChunkString := strings.Split(chunkString, sep)
+
+		for index, str := range splitedChunkString {
+			if index == 0 {
+				continue
+			}
+			var chunkObject CompletionResponse
+			validJson := `{"id":"chatcmpl` + re.ReplaceAllString(str, `"finish_reason":"stop"}]}`)
+			err := json.Unmarshal([]byte(validJson), &chunkObject)
+			if err != nil {
+				fmt.Println(color.Red(err.Error()))
+				continue
+			}
+			deltaString := chunkObject.Choices[0].Delta.Content
+			content += deltaString
+			o.incommingMessage <- deltaString
+		}
+
+	}
+
+	msg.Content = content
+
+	return msg, nil
 
 }
 
 func (o *Openai) Reset() {
 	fmt.Println(color.Red("Reset context"))
 	o.chat.Messages = []Message{o.chat.Messages[0]}
+}
+
+func (o *Openai) ListenAndPrintIncommingMsg() {
+	for {
+		msg := <-o.incommingMessage
+		fmt.Print(color.Green(msg))
+	}
 }

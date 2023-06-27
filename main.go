@@ -6,14 +6,13 @@ import (
 	"fmt"
 	"os"
 
-	color "github.com/AntonyChR/terminalGPT/color"
 	config "github.com/AntonyChR/terminalGPT/config"
 	openaiservice "github.com/AntonyChR/terminalGPT/openai_service"
 )
 
 func readUserInput() (string, error) {
 	reader := bufio.NewReader(os.Stdin)
-	fmt.Print("[A]: ")
+	fmt.Print("\n[A]: ")
 	input, _ := reader.ReadString('\n')
 	return input, validateInput(input)
 }
@@ -38,14 +37,17 @@ func main() {
 	}
 
 	config := openaiservice.Configuration{
-		Apikey: credentials.Apikey,
-		Model:  "gpt-3.5-turbo",
-		ApiUrl: "https://api.openai.com/v1/chat/completions",
+		Apikey:     credentials.Apikey,
+		Model:      "gpt-3.5-turbo",
+		ApiUrl:     "https://api.openai.com/v1/chat/completions",
+		StreamData: true,
 	}
 	chat := openaiservice.NewChat(config)
 
 	var input string
 	var err error
+
+	go chat.ListenAndPrintIncommingMsg()
 
 	for {
 		input, err = readUserInput()
@@ -64,7 +66,6 @@ func main() {
 			os.Exit(1)
 		}
 		chat.AddMessage(completion)
-		fmt.Println(color.Green("[GPT]: "+completion.Content) + "\n")
 	}
 
 }

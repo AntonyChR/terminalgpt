@@ -6,11 +6,13 @@ type CompletionResponse struct {
 	Created int64    `json:"created"`
 	Choices []Choice `json:"choices"`
 	Usage   Usage    `json:"usage"`
+	Model   string   `json:"model"`
 }
 
 type Choice struct {
 	Index        int64   `json:"index"`
-	Message      Message `json:"message"`
+	Message      Message `json:"message,omitempty"`
+	Delta        Delta   `json:"delta,omitempty"`
 	FinishReason string  `json:"finish_reason"`
 }
 
@@ -29,4 +31,9 @@ type Roles struct {
 	System    string
 	Assistant string
 	User      string
+}
+
+type Delta struct {
+	Role    string `json:"role,omitempty"`
+	Content string `json:"content"`
 }
