@@ -38,9 +38,7 @@ func (c *Credentials) Get() error {
 		err := errors.New(color.Red("[] the configuration file does not exist,use the -c flag to add the credentials"))
 		return err
 	}
-
 	file, _ := os.ReadFile(CONFIG_PATH_DIR + CONFIG_FILE_NAME)
-
 	err := json.Unmarshal(file, &c)
 
 	return err

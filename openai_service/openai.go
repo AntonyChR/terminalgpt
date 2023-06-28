@@ -44,7 +44,7 @@ func NewChat(c Configuration) *Openai {
 			Temperature: c.Temperature,
 			Stream:      c.StreamData,
 		},
-		incommingMessage: make(chan string),
+		IncommingMessage: make(chan string),
 	}
 }
 
@@ -52,7 +52,7 @@ type Openai struct {
 	apikey           string
 	url              string
 	chat             Chat
-	incommingMessage chan string
+	IncommingMessage chan string
 }
 
 type Chat struct {
@@ -101,8 +101,8 @@ func (o *Openai) GetCompletion() (Message, error) {
 			return Message{}, err
 		}
 
-		o.incommingMessage <- completionResp.Choices[0].Message.Content
-		o.incommingMessage <- "\n"
+		o.IncommingMessage <- completionResp.Choices[0].Message.Content
+		o.IncommingMessage <- "\n"
 
 		return completionResp.Choices[0].Message, nil
 	}
@@ -115,7 +115,7 @@ func (o *Openai) GetCompletion() (Message, error) {
 		chunkSize, err := resp.Body.Read(chunkBuffer)
 		if err != nil {
 			if errors.Is(err, io.EOF) {
-				o.incommingMessage <- "\n"
+				o.IncommingMessage <- "\n"
 				break
 			}
 			fmt.Println("ERROR: ", err.Error())
@@ -140,12 +140,13 @@ func (o *Openai) GetCompletion() (Message, error) {
 			}
 			deltaString := chunkObject.Choices[0].Delta.Content
 			content += deltaString
-			o.incommingMessage <- deltaString
+			o.IncommingMessage <- deltaString
 		}
 
 	}
 
 	msg.Content = content
+	o.IncommingMessage <- "\n[A]: "
 
 	return msg, nil
 
@@ -158,7 +159,7 @@ func (o *Openai) Reset() {
 
 func (o *Openai) ListenAndPrintIncommingMsg() {
 	for {
-		msg := <-o.incommingMessage
+		msg := <-o.IncommingMessage
 		fmt.Print(color.Green(msg))
 	}
 }

@@ -12,7 +12,6 @@ import (
 
 func readUserInput() (string, error) {
 	reader := bufio.NewReader(os.Stdin)
-	fmt.Print("\n[A]: ")
 	input, _ := reader.ReadString('\n')
 	return input, validateInput(input)
 }
@@ -48,6 +47,7 @@ func main() {
 	var err error
 
 	go chat.ListenAndPrintIncommingMsg()
+	chat.IncommingMessage <- "\n[A]: "
 
 	for {
 		input, err = readUserInput()
