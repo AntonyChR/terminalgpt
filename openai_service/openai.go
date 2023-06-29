@@ -36,6 +36,7 @@ func NewChat(c Configuration) *Openai {
 	return &Openai{
 		apikey: c.Apikey,
 		url:    c.ApiUrl,
+		IncommingMessage: make(chan string),
 		chat: Chat{
 			Model: c.Model,
 			Messages: []Message{
@@ -44,7 +45,6 @@ func NewChat(c Configuration) *Openai {
 			Temperature: c.Temperature,
 			Stream:      c.StreamData,
 		},
-		IncommingMessage: make(chan string),
 	}
 }
 
