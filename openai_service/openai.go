@@ -34,8 +34,8 @@ func NewChat(c Configuration) *Openai {
 		Content: "You are an assistant.",
 	}
 	return &Openai{
-		apikey: c.Apikey,
-		url:    c.ApiUrl,
+		apikey:           c.Apikey,
+		url:              c.ApiUrl,
 		IncommingMessage: make(chan string),
 		chat: Chat{
 			Model: c.Model,
@@ -76,20 +76,20 @@ func (o *Openai) GetCompletion() (Message, error) {
 	if err != nil {
 		return Message{}, err
 	}
-	req.Header.Add("Authorization", "Bearer "+o.apikey)
+	token := strings.TrimSuffix("Bearer "+o.apikey, "\n")
+	req.Header.Set("Authorization", token)
 	req.Header.Set("Content-Type", "application/json")
 
 	client := &http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {
-		return Message{}, &customErrors.RequestError{StatusCode: resp.StatusCode, Err: err}
+		return Message{}, err
 	}
+	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
 		return Message{}, &customErrors.RequestError{StatusCode: resp.StatusCode, Err: errors.New("unespected request errror")}
 	}
-
-	defer resp.Body.Close()
 
 	if !o.chat.Stream {
 
