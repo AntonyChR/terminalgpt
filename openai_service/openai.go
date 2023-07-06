@@ -31,7 +31,7 @@ type Configuration struct {
 func NewChat(c Configuration) *Openai {
 	initialMessage := Message{
 		Role:    ChatRoles.System,
-		Content: "You are an assistant.",
+		Content: "Eres un asistente, si tu respuesta contiene código de programación los nombres de variable, funciones, etc... deben ser en ingles.",
 	}
 	return &Openai{
 		apikey:           c.Apikey,
