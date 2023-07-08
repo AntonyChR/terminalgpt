@@ -76,8 +76,7 @@ func (o *Openai) GetCompletion() (Message, error) {
 	if err != nil {
 		return Message{}, err
 	}
-	token := strings.TrimSuffix("Bearer "+o.apikey, "\n")
-	req.Header.Set("Authorization", token)
+	req.Header.Set("Authorization", "Bearer "+o.apikey)
 	req.Header.Set("Content-Type", "application/json")
 
 	client := &http.Client{}

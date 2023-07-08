@@ -1,18 +1,16 @@
 package main
 
 import (
-	"bufio"
 	"errors"
 	"fmt"
 	"os"
-
 	config "github.com/AntonyChR/terminalGPT/config"
 	openaiservice "github.com/AntonyChR/terminalGPT/openai_service"
 )
 
 func readUserInput() (string, error) {
-	reader := bufio.NewReader(os.Stdin)
-	input, _ := reader.ReadString('\n')
+	var input string
+	fmt.Scanln(&input)
 	return input, validateInput(input)
 }
 
