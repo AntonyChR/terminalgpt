@@ -20,39 +20,36 @@ var ChatRoles = Roles{
 	User:      "user",
 }
 
-type Configuration struct {
+type ApiConfiguration struct {
 	Apikey      string
 	Model       string
 	ApiUrl      string
 	Temperature float32 //default 0.0
-	StreamData  bool    //defaul false
 }
 
-func NewChat(c Configuration) *Openai {
+func NewChat(c ApiConfiguration) *Openai {
 	initialMessage := Message{
 		Role:    ChatRoles.System,
 		Content: "Eres un asistente, si tu respuesta contiene código de programación los nombres de variable, funciones, etc... deben ser en ingles. El resto de la respuesta debe estar en el mismo idioma en el que se hizo la pregunta",
 	}
 	return &Openai{
-		apikey:           c.Apikey,
-		url:              c.ApiUrl,
-		IncommingMessage: make(chan string),
+		apikey: c.Apikey,
+		url:    c.ApiUrl,
 		chat: Chat{
 			Model: c.Model,
 			Messages: []Message{
 				initialMessage,
 			},
 			Temperature: c.Temperature,
-			Stream:      c.StreamData,
+			Stream:      true,
 		},
 	}
 }
 
 type Openai struct {
-	apikey           string
-	url              string
-	chat             Chat
-	IncommingMessage chan string
+	apikey string
+	url    string
+	chat   Chat
 }
 
 type Chat struct {
@@ -70,7 +67,7 @@ func (o *Openai) AddMessageAsUser(input string) {
 	o.AddMessage(Message{Role: ChatRoles.User, Content: input})
 }
 
-func (o *Openai) GetCompletion() (Message, error) {
+func (o *Openai) GetStreamCompletion(streamChannel chan string) (Message, error) {
 	encodedData, _ := json.Marshal(o.chat)
 	req, err := http.NewRequest("POST", o.url, bytes.NewBuffer(encodedData))
 	if err != nil {
@@ -90,32 +87,15 @@ func (o *Openai) GetCompletion() (Message, error) {
 		return Message{}, &customErrors.RequestError{StatusCode: resp.StatusCode, Err: errors.New("unespected request errror")}
 	}
 
-	if !o.chat.Stream {
-
-		completionResp := CompletionResponse{}
-
-		err = json.NewDecoder(resp.Body).Decode(&completionResp)
-
-		if err != nil {
-			return Message{}, err
-		}
-
-		o.IncommingMessage <- completionResp.Choices[0].Message.Content
-		o.IncommingMessage <- "\n"
-
-		return completionResp.Choices[0].Message, nil
-	}
-
 	chunkBuffer := make([]byte, 4096)
 	re := regexp.MustCompile(`(?s)"finish_reason":(null|"stop").*`)
 	msg := Message{Role: ChatRoles.Assistant}
 	content := ""
 	for {
 		chunkSize, err := resp.Body.Read(chunkBuffer)
-		fmt.Println(resp.Header.Get("Content-Type"))		
 		if err != nil {
 			if errors.Is(err, io.EOF) {
-				o.IncommingMessage <- "\n"
+				streamChannel <- "\n"
 				break
 			}
 			fmt.Println("ERROR: ", err.Error())
@@ -140,13 +120,13 @@ func (o *Openai) GetCompletion() (Message, error) {
 			}
 			deltaString := chunkObject.Choices[0].Delta.Content
 			content += deltaString
-			o.IncommingMessage <- deltaString
+			streamChannel <- deltaString
 		}
 
 	}
 
 	msg.Content = content
-	o.IncommingMessage <- "\n[A]: "
+	streamChannel <- "\n"
 
 	return msg, nil
 
@@ -155,11 +135,4 @@ func (o *Openai) GetCompletion() (Message, error) {
 func (o *Openai) Reset() {
 	fmt.Println(color.Red("Reset context"))
 	o.chat.Messages = []Message{o.chat.Messages[0]}
-}
-
-func (o *Openai) ListenAndPrintIncommingMsg() {
-	for {
-		msg := <-o.IncommingMessage
-		fmt.Print(color.Green(msg))
-	}
 }
