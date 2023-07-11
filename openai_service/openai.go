@@ -112,6 +112,7 @@ func (o *Openai) GetCompletion() (Message, error) {
 	content := ""
 	for {
 		chunkSize, err := resp.Body.Read(chunkBuffer)
+		fmt.Println(resp.Header.Get("Content-Type"))		
 		if err != nil {
 			if errors.Is(err, io.EOF) {
 				o.IncommingMessage <- "\n"
