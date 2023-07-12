@@ -1,8 +1,10 @@
 package userinterface
 
 import (
+	"bufio"
 	"errors"
 	"fmt"
+	"os"
 
 	"github.com/AntonyChR/terminalGPT/color"
 )
@@ -18,9 +20,13 @@ type UserInterfaceIO struct {
 }
 
 func (u *UserInterfaceIO) GetInput(prompt string) (string, error) {
-	var input string
 	fmt.Print(color.Yellow(prompt))
-	fmt.Scanln(&input)
+	reader := bufio.NewReader(os.Stdin)
+	input, err := reader.ReadString('\n')
+	if err != nil {
+		return "", err
+	}
+
 	return input, validateInput(input)
 }
 

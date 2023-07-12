@@ -5,6 +5,7 @@ import (
 	"os"
 
 	config "github.com/AntonyChR/terminalGPT/config"
+	"github.com/AntonyChR/terminalGPT/db"
 	openaiservice "github.com/AntonyChR/terminalGPT/openai_service"
 	userinterface "github.com/AntonyChR/terminalGPT/user_interface"
 )
@@ -45,12 +46,13 @@ func main() {
 			continue
 		}
 		chat.AddMessageAsUser(input)
-		completion, err := chat.GetStreamCompletion(userInterface.PrintChannel)
+		err = chat.GetStreamCompletion(userInterface.PrintChannel)
 		if err != nil {
 			fmt.Println(err.Error())
 			os.Exit(1)
 		}
-		chat.AddMessage(completion)
+
+		db.SaveChat("title string", chat.Chat)
 	}
 
 }

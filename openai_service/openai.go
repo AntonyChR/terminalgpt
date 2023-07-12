@@ -35,7 +35,7 @@ func NewChat(c ApiConfiguration) *Openai {
 	return &Openai{
 		apikey: c.Apikey,
 		url:    c.ApiUrl,
-		chat: Chat{
+		Chat: Chat{
 			Model: c.Model,
 			Messages: []Message{
 				initialMessage,
@@ -49,7 +49,7 @@ func NewChat(c ApiConfiguration) *Openai {
 type Openai struct {
 	apikey string
 	url    string
-	chat   Chat
+	Chat   Chat
 }
 
 type Chat struct {
@@ -60,18 +60,18 @@ type Chat struct {
 }
 
 func (o *Openai) AddMessage(m Message) {
-	o.chat.Messages = append(o.chat.Messages, m)
+	o.Chat.Messages = append(o.Chat.Messages, m)
 }
 
 func (o *Openai) AddMessageAsUser(input string) {
 	o.AddMessage(Message{Role: ChatRoles.User, Content: input})
 }
 
-func (o *Openai) GetStreamCompletion(streamChannel chan string) (Message, error) {
-	encodedData, _ := json.Marshal(o.chat)
+func (o *Openai) GetStreamCompletion(streamChannel chan string) error {
+	encodedData, _ := json.Marshal(o.Chat)
 	req, err := http.NewRequest("POST", o.url, bytes.NewBuffer(encodedData))
 	if err != nil {
-		return Message{}, err
+		return err
 	}
 	req.Header.Set("Authorization", "Bearer "+o.apikey)
 	req.Header.Set("Content-Type", "application/json")
@@ -79,12 +79,12 @@ func (o *Openai) GetStreamCompletion(streamChannel chan string) (Message, error)
 	client := &http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {
-		return Message{}, err
+		return err
 	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		return Message{}, &customErrors.RequestError{StatusCode: resp.StatusCode, Err: errors.New("unespected request errror")}
+		return &customErrors.RequestError{StatusCode: resp.StatusCode, Err: errors.New("unespected request errror")}
 	}
 
 	chunkBuffer := make([]byte, 4096)
@@ -128,11 +128,12 @@ func (o *Openai) GetStreamCompletion(streamChannel chan string) (Message, error)
 	msg.Content = content
 	streamChannel <- "\n"
 
-	return msg, nil
+	o.AddMessage(msg)
+	return nil
 
 }
 
 func (o *Openai) Reset() {
 	fmt.Println(color.Red("Reset context"))
-	o.chat.Messages = []Message{o.chat.Messages[0]}
+	o.Chat.Messages = []Message{o.Chat.Messages[0]}
 }
