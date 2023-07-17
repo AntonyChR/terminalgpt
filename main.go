@@ -5,7 +5,6 @@ import (
 	"os"
 
 	config "github.com/AntonyChR/terminalGPT/config"
-	"github.com/AntonyChR/terminalGPT/db"
 	openaiservice "github.com/AntonyChR/terminalGPT/openai_service"
 	userinterface "github.com/AntonyChR/terminalGPT/user_interface"
 )
@@ -52,7 +51,6 @@ func main() {
 			os.Exit(1)
 		}
 
-		db.SaveChat("title string", chat.Chat)
 	}
 
 }

@@ -30,7 +30,7 @@ type ApiConfiguration struct {
 func NewChat(c ApiConfiguration) *Openai {
 	initialMessage := Message{
 		Role:    ChatRoles.System,
-		Content: "Eres un asistente, si tu respuesta contiene código de programación los nombres de variable, funciones, etc... deben ser en ingles. El resto de la respuesta debe estar en el mismo idioma en el que se hizo la pregunta",
+		Content: "Eres un asistente",
 	}
 	return &Openai{
 		apikey: c.Apikey,
@@ -59,12 +59,12 @@ type Chat struct {
 	Stream      bool      `json:"stream,omitempty"`
 }
 
-func (o *Openai) AddMessage(m Message) {
+func (o *Openai) appendMessageToList(m Message) {
 	o.Chat.Messages = append(o.Chat.Messages, m)
 }
 
 func (o *Openai) AddMessageAsUser(input string) {
-	o.AddMessage(Message{Role: ChatRoles.User, Content: input})
+	o.appendMessageToList(Message{Role: ChatRoles.User, Content: input})
 }
 
 func (o *Openai) GetStreamCompletion(streamChannel chan string) error {
@@ -126,9 +126,7 @@ func (o *Openai) GetStreamCompletion(streamChannel chan string) error {
 	}
 
 	msg.Content = content
-	streamChannel <- "\n"
-
-	o.AddMessage(msg)
+	o.appendMessageToList(msg)
 	return nil
 
 }

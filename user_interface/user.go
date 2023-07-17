@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"time"
 
 	"github.com/AntonyChR/terminalGPT/color"
 )
@@ -20,6 +21,7 @@ type UserInterfaceIO struct {
 }
 
 func (u *UserInterfaceIO) GetInput(prompt string) (string, error) {
+	time.Sleep(20 * time.Millisecond)
 	fmt.Print(color.Yellow(prompt))
 	reader := bufio.NewReader(os.Stdin)
 	input, err := reader.ReadString('\n')
