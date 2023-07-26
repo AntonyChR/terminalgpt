@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 
+	colors "github.com/AntonyChR/terminalGPT/colors"
 	config "github.com/AntonyChR/terminalGPT/config"
 	openaiservice "github.com/AntonyChR/terminalGPT/openai_service"
 	userinterface "github.com/AntonyChR/terminalGPT/user_interface"
@@ -35,15 +36,18 @@ func main() {
 	go userInterface.PrintChannelMessages()
 
 	for {
-		input, err = userInterface.GetInput("[A]: ")
+		input, err = userInterface.GetInput(colors.Colorize("yellow", "[A]: "))
+
 		if err != nil {
 			fmt.Println(err.Error())
 			continue
 		}
+
 		if input == "reset\n" {
 			chat.Reset()
 			continue
 		}
+
 		chat.AddMessageAsUser(input)
 		err = chat.GetStreamCompletion(userInterface.PrintChannel)
 		if err != nil {

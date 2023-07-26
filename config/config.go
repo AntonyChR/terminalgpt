@@ -7,7 +7,8 @@ import (
 	"os"
 	"path"
 
-	"github.com/AntonyChR/terminalGPT/color"
+	color "github.com/AntonyChR/terminalGPT/colors"
+	colors "github.com/AntonyChR/terminalGPT/colors"
 )
 
 type Credentials struct {
@@ -23,18 +24,18 @@ var CONFIG_FILE_PATH string = path.Join(CONFIG_PATH_DIR, CONFIG_FILE_NAME)
 
 func (c *Credentials) Save() {
 	if _, err := os.Stat(CONFIG_PATH_DIR + CONFIG_FILE_NAME); err == nil {
-		fmt.Println(color.Yellow("[i] A configuration file already exists, it will be overwritten with the new credentials"))
+		fmt.Println(colors.Colorize("yellow", "[i] A configuration file already exists, it will be overwritten with the new credentials"))
 	}
 	os.Mkdir(CONFIG_PATH_DIR, os.ModePerm)
 	file, _ := os.Create(CONFIG_PATH_DIR + CONFIG_FILE_NAME)
 	jsonBytes, _ := json.Marshal(c)
 	file.WriteString(string(jsonBytes))
-	fmt.Println(color.Green("[] The credentials have been saved successfully"))
+	fmt.Println(color.Colorize("green", "[] The credentials have been saved successfully"))
 }
 
 func (c *Credentials) Get() error {
 	if _, err := os.Stat(CONFIG_PATH_DIR + CONFIG_FILE_NAME); err != nil {
-		err := errors.New(color.Red("[] the configuration file does not exist,use the -c flag to add the credentials"))
+		err := errors.New(color.Colorize("red", "[] the configuration file does not exist,use the -c flag to add the credentials"))
 		return err
 	}
 	file, _ := os.ReadFile(CONFIG_PATH_DIR + CONFIG_FILE_NAME)
@@ -47,7 +48,7 @@ func (c *Credentials) PromptUserForCredentials() error {
 	var apiKey string
 	fmt.Print("Api key: ")
 	fmt.Scanln(&apiKey)
-	if apiKey== "" {
+	if apiKey == "" {
 		return errors.New("Invalid api key")
 	}
 	c.Apikey = apiKey

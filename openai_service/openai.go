@@ -10,7 +10,7 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/AntonyChR/terminalGPT/color"
+	color "github.com/AntonyChR/terminalGPT/colors"
 	customErrors "github.com/AntonyChR/terminalGPT/customErrors"
 )
 
@@ -91,11 +91,12 @@ func (o *Openai) GetStreamCompletion(streamChannel chan string) error {
 	re := regexp.MustCompile(`(?s)"finish_reason":(null|"stop").*`)
 	msg := Message{Role: ChatRoles.Assistant}
 	content := ""
+	fmt.Printf("\n")
 	for {
 		chunkSize, err := resp.Body.Read(chunkBuffer)
 		if err != nil {
 			if errors.Is(err, io.EOF) {
-				streamChannel <- "\n"
+				streamChannel <- "\n\n"
 				break
 			}
 			fmt.Println("ERROR: ", err.Error())
@@ -115,7 +116,7 @@ func (o *Openai) GetStreamCompletion(streamChannel chan string) error {
 			validJson := `{"id":"chatcmpl` + re.ReplaceAllString(str, `"finish_reason":"stop"}]}`)
 			err := json.Unmarshal([]byte(validJson), &chunkObject)
 			if err != nil {
-				fmt.Println(color.Red(err.Error()))
+				fmt.Println(color.Colorize("red", err.Error()))
 				continue
 			}
 			deltaString := chunkObject.Choices[0].Delta.Content
@@ -132,6 +133,6 @@ func (o *Openai) GetStreamCompletion(streamChannel chan string) error {
 }
 
 func (o *Openai) Reset() {
-	fmt.Println(color.Red("Reset context"))
+	fmt.Println(color.Colorize("red", "Reset context"))
 	o.Chat.Messages = []Message{o.Chat.Messages[0]}
 }
