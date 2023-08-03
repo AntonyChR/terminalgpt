@@ -124,7 +124,7 @@ func (o *Openai) GetStreamCompletion(streamChannel chan string) error {
 			}
 			deltaString := chunkObject.Choices[0].Delta.Content
 			content += deltaString
-			streamChannel <- deltaString
+			streamChannel <- color.Colorize("green", deltaString) 
 		}
 
 	}
