@@ -8,7 +8,7 @@ type RequestError struct {
 }
 
 func (r *RequestError) Error() string {
-	return fmt.Sprintf("status %d: err %v", r.StatusCode, r.Err)
+	return fmt.Sprintf("status code %d: %v", r.StatusCode, r.Err)
 }
 
 type InputError struct {

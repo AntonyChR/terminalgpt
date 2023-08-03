@@ -84,7 +84,10 @@ func (o *Openai) GetStreamCompletion(streamChannel chan string) error {
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		return &customErrors.RequestError{StatusCode: resp.StatusCode, Err: errors.New("unespected request errror")}
+		if resp.StatusCode == 429 {
+			return &customErrors.RequestError{StatusCode: resp.StatusCode, Err: errors.New("Request limit exceeded")}
+		}
+		return &customErrors.RequestError{StatusCode: resp.StatusCode, Err: errors.New("unespected request error")}
 	}
 
 	chunkBuffer := make([]byte, 4096)
