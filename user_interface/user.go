@@ -32,7 +32,7 @@ func (u *UserInterfaceIO) GetInput(prompt string) (string, error) {
 
 func validateInput(input string) error {
 	if input == "" || input == "\n" {
-		return errors.New("invalid input")
+		return errors.New("invalid input, text is required")
 	}
 	return nil
 }
