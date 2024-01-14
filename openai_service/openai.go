@@ -30,7 +30,7 @@ type ApiConfiguration struct {
 func NewChat(c ApiConfiguration) *Openai {
 	initialMessage := Message{
 		Role:    ChatRoles.System,
-		Content: "Eres un asistente",
+		Content: "You are an assistant",
 	}
 	return &Openai{
 		apikey: c.Apikey,
