@@ -1,1 +1,4 @@
 bin/gpt
+*.json
+
+run.sh
