@@ -11,5 +11,16 @@ var COLORS = map[string]string{
 
 func Colorize(color string, msg string) string {
 	return fmt.Sprintf("%v%v%v", COLORS[color], msg, COLORS["reset"])
+}
 
+func Red(msg string) string {
+	return Colorize("red", msg)
+}
+
+func Green(msg string) string {
+	return Colorize("green", msg)
+}
+
+func Yellow(msg string) string {
+	return Colorize("yellow", msg)
 }
