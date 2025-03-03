@@ -3,61 +3,59 @@ package config
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
 	"os"
 	"path"
-
-	color "github.com/AntonyChR/terminalGPT/colors"
-	colors "github.com/AntonyChR/terminalGPT/colors"
 )
 
-type Credentials struct {
-	Apikey string `json:"api_key"`
+var SPANISH = "es"
+var ENGLISH = "en"
+
+type Config struct {
+	ApiKey        string `json:"api_key,omitempty"`
+	InitialPrompt string `json:"initial_prompt,omitempty"`
+	Lang          string `json:"lang,omitempty"`
 }
 
-var userHomeDir, _ = os.UserHomeDir()
+func SaveNewConfig(config *Config, dir, fileName string) error {
 
-var CONFIG_PATH_DIR string = userHomeDir + "/.config/gpt"
-var CONFIG_FILE_NAME string = "/gpt.dat"
-
-var CONFIG_FILE_PATH string = path.Join(CONFIG_PATH_DIR, CONFIG_FILE_NAME)
-
-func (c *Credentials) Save() {
-	if _, err := os.Stat(CONFIG_PATH_DIR + CONFIG_FILE_NAME); err == nil {
-		fmt.Println(colors.Colorize("yellow", "[i] A configuration file already exists, it will be overwritten with the new credentials"))
+	//check if the route exists
+	if _, err := os.Stat(dir); os.IsNotExist(err) {
+		os.MkdirAll(dir, 0755)
 	}
-	os.Mkdir(CONFIG_PATH_DIR, os.ModePerm)
-	file, _ := os.Create(CONFIG_PATH_DIR + CONFIG_FILE_NAME)
-	jsonBytes, _ := json.Marshal(c)
-	file.WriteString(string(jsonBytes))
-	fmt.Println(color.Colorize("green", "[] The credentials have been saved successfully"))
-}
+	route := path.Join(dir, fileName)
 
-func (c *Credentials) Get() error {
-	if _, err := os.Stat(CONFIG_PATH_DIR + CONFIG_FILE_NAME); err != nil {
-		err := errors.New(color.Colorize("red", "[] the configuration file does not exist,use the -c flag to add the credentials"))
+	file, err := os.Create(route)
+	if err != nil {
 		return err
 	}
-	file, _ := os.ReadFile(CONFIG_PATH_DIR + CONFIG_FILE_NAME)
-	err := json.Unmarshal(file, &c)
+	defer file.Close()
 
-	return err
-}
-
-func (c *Credentials) PromptUserForCredentials() error {
-	var apiKey string
-	fmt.Print("Api key: ")
-	fmt.Scanln(&apiKey)
-	if apiKey == "" {
-		return errors.New("Invalid api key")
+	configJson, err := json.Marshal(config)
+	if err != nil {
+		return err
 	}
-	c.Apikey = apiKey
+
+	file.Write(configJson)
+
 	return nil
+
 }
 
-func (c *Credentials) Exist() bool {
-	if c.Apikey != "" {
-		return true
+func LoadConfig(fileRoute string) (*Config, error) {
+	file, err := os.ReadFile(fileRoute)
+	config := &Config{}
+	if err != nil {
+		return config, err
 	}
-	return false
+
+	err = json.Unmarshal(file, config)
+	if err != nil {
+		return config, err
+	}
+
+	if config.ApiKey == "" {
+		return config, errors.New("api_key field is empty")
+	}
+
+	return config, nil
 }
