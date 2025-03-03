@@ -5,15 +5,17 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"strings"
 	"time"
 )
 
-func NewUserInterface() *UserInterfaceIO {
+func New() *UserInterfaceIO {
 	return &UserInterfaceIO{
 		PrintChannel: make(chan string),
 	}
 }
 
+// Manage input and output from the user
 type UserInterfaceIO struct {
 	PrintChannel chan string
 }
@@ -27,10 +29,13 @@ func (u *UserInterfaceIO) GetInput(prompt string) (string, error) {
 		return "", err
 	}
 
+	input = strings.TrimSuffix(input, "\n")
+
 	return input, validateInput(input)
 }
 
 func validateInput(input string) error {
+
 	if input == "" || input == "\n" {
 		return errors.New("invalid input, text is required")
 	}
