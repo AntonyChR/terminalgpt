@@ -13,7 +13,6 @@ import (
 	"strings"
 
 	color "github.com/AntonyChR/terminalGPT/colors"
-	"github.com/AntonyChR/terminalGPT/logs"
 )
 
 var ChatRoles = Roles{
@@ -76,10 +75,9 @@ func NewChat(c ApiConfiguration) *Openai {
 }
 
 type Openai struct {
-	apikey     string
-	url        string
-	Chat       Chat
-	LogChannel chan string
+	apikey string
+	url    string
+	Chat   Chat
 }
 
 type Chat struct {
@@ -128,17 +126,14 @@ func (o *Openai) GetCompletion() (string, error) {
 	client := &http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {
-		o.LogChannel <- createRequestErrorEvent(resp, err, "")
 		return "", err
 	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
 		if resp.StatusCode == 429 {
-			o.LogChannel <- createRequestErrorEvent(resp, err, "Request limit exceeded")
 			panic("Request limit exceeded")
 		}
-		o.LogChannel <- createRequestErrorEvent(resp, err, "")
 		panic("unespected request error")
 	}
 
@@ -185,7 +180,6 @@ func (o *Openai) GetStreamCompletion(stringChannel chan string) error {
 			}
 			logStr := "error reading stream completion chunk " + err.Error()
 			fmt.Println(logStr)
-			o.LogChannel <- logs.NewEvent(logs.ErrorLevel, logStr, logs.GetDate()).ToStr()
 		}
 
 		chunkString := string(chunkBuffer[:chunkSize])
@@ -203,7 +197,6 @@ func (o *Openai) GetStreamCompletion(stringChannel chan string) error {
 			if err != nil {
 				logStr := "error unmarshalling json del stream completion chunk " + err.Error()
 				fmt.Print(color.Red(logStr))
-				o.LogChannel <- logs.NewEvent(logs.ErrorLevel, logStr, logs.GetDate()).ToStr()
 				continue
 			}
 			deltaString := chunkObject.Choices[0].Delta.Content
@@ -252,11 +245,4 @@ func (o *Openai) Save(title, fileName, dir string) error {
 	}
 	return nil
 
-}
-
-func createRequestErrorEvent(resp *http.Response, err error, additionalInfo string) string {
-	bodyBytes, _ := io.ReadAll(resp.Body)
-	logMsg := fmt.Sprintf("error making request\n%s \n%s\nResponse body: %s\nStatus code: %d", additionalInfo, err.Error(), string(bodyBytes), resp.StatusCode)
-	event := logs.NewEvent(logs.ErrorLevel, logMsg, logs.GetDate())
-	return event.ToStr()
 }
