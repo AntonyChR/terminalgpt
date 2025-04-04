@@ -69,7 +69,9 @@ func main() {
 		handleError(err, "Error reading file")
 		fileContent = string(content)
 
-		fmt.Printf("The content of the file '%s' will be concatenated to the prompt\n", *file)
+		fmt.Printf("\nThe content of the file will be concatenated to the prompt\n")
+		fmt.Printf("\n%s:\n\n%s\n...\n\n",*file,fileContent[:200])
+		//print first lines of the file 
 
 	}
 
@@ -138,21 +140,15 @@ func main() {
 func createNewConfig(userInt *userinterface.UserInterfaceIO) (*configService.Config, error) {
 	userInt.PrintChannel <- colors.Yellow("Please enter your API key: ")
 	api_key, err := userInt.GetInput(colors.Yellow(">: "))
-	if err != nil {
-		println(colors.Red("Error getting input"))
-		os.Exit(1)
-	}
+
+	handleError(err, "Error getting input")
 
 	newConf := &configService.Config{
 		ApiKey: api_key,
 	}
 
 	lang, err := userInt.GetInput(colors.Yellow("Language (es/en): "))
-
-	if err != nil {
-		println(colors.Red("Error getting input"))
-		os.Exit(1)
-	}
+	handleError(err, "Error getting input")
 
 	if lang != configService.SPANISH && lang != configService.ENGLISH {
 		println(colors.Red("Invalid language, spanish will be set by default"))
