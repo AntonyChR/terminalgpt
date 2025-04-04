@@ -7,11 +7,11 @@ import (
 	"os"
 	"path"
 
-	colors "github.com/AntonyChR/terminalGPT/colors"
-	configService "github.com/AntonyChR/terminalGPT/config"
-	openaiservice "github.com/AntonyChR/terminalGPT/openai_service"
-	userinterface "github.com/AntonyChR/terminalGPT/user_interface"
-	utils "github.com/AntonyChR/terminalGPT/utils"
+	colors "github.com/AntonyChR/terminalgpt/colors"
+	configService "github.com/AntonyChR/terminalgpt/config"
+	openaiservice "github.com/AntonyChR/terminalgpt/openai_service"
+	userinterface "github.com/AntonyChR/terminalgpt/user_interface"
+	utils "github.com/AntonyChR/terminalgpt/utils"
 )
 
 const (

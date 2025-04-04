@@ -12,7 +12,7 @@ import (
 	"regexp"
 	"strings"
 
-	color "github.com/AntonyChR/terminalGPT/colors"
+	color "github.com/AntonyChR/terminalgpt/colors"
 )
 
 var ChatRoles = Roles{
