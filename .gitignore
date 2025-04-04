@@ -1,4 +1,3 @@
-bin/gpt
 *.json
-
+bin
 run.sh
