@@ -1,2 +1,3 @@
-# TerminalGPT
+## TerminalGPT
 
+simple deepseek api client

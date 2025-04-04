@@ -70,9 +70,7 @@ func main() {
 		fileContent = string(content)
 
 		fmt.Printf("\nThe content of the file will be concatenated to the prompt\n")
-		fmt.Printf("\n%s:\n\n%s\n...\n\n",*file,fileContent[:200])
-		//print first lines of the file 
-
+		fmt.Printf("\n%s:\n\n%s\n...\n\n", *file, fileContent[:200])
 	}
 
 	sessionConfig := openaiservice.ApiConfiguration{
