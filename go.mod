@@ -1,3 +1,3 @@
-module github.com/AntonyChR/terminalGPT
+module github.com/AntonyChR/terminalgpt
 
 go 1.20
